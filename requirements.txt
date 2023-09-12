@@ -1,0 +1,7 @@
+chromadb>=0.4.0
+pydantic==1.10.9
+fastapi>=0.100.0
+torch>=1.13.0
+langchain>=0.0.281
+transformers>=4.33.0
+pypdf>=3.12.0
