@@ -25,6 +25,23 @@ class VectorDBStorage:
 
         return ret
 
+    def erase_all(self):
+        print('Warning: Deleting the entire database')
+        if self.vec_db_storage is None:
+            print("No database to delete!")
+            return
+        
+        ids = []
+        for id_ in self.vec_db_storage.get():
+            ids.append(id_)
+
+        if len(ids) == 0:
+            print("Database is empty already")
+            return
+        else:
+            self.vec_db_storage.delete(ids)
+            print('Deletion completed!')
+            return 
 
 #if __name__ == '__main__':
     
