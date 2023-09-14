@@ -1,8 +1,6 @@
 import os
 
 from config import *
-from doc_loader import *
-from doc_splitter import *
 from doc_indexing import *
 from doc_qa import *
 
@@ -63,6 +61,13 @@ async def query_from_db(query: str):
     )
 
     return {"answer": res}
+
+@app.get("/listing")
+async def get_document_list():
+    obj = vec_storage.vec_db_storage.get()
+
+    return obj
+
 
 if __name__ == '__main__':
     uvicorn.run(app,host="127.0.0.1",port=8000)
