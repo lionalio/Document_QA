@@ -1,19 +1,40 @@
+from langchain.document_loaders import DirectoryLoader, PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import Chroma # Pinecone
 
 
 class VectorDBStorage:
-    def __init__(self, embedding, storage_path):
+    def __init__(self, embedding, storage_path, collection_name):
         self.embedding = embedding
         self.storage_path = storage_path
-        self.vec_db_storage = None
+        self.vec_db_storage = Chroma(
+            collection_name=collection_name,
+            embedding_function=embedding,
+            persist_directory=storage_path
+        )
 
-    def doc_storing(self, splitted_docs):
-        self.vec_db_storage = Chroma.from_documents(
-            documents=splitted_docs,
+    def load_doc_pdf(self, _path):
+        loader = PyPDFLoader(_path)
+        doc = loader.load()
+        return doc
+
+    def doc_splitting(self, loaded_doc, chunk_size=1000, chunk_overlap=100):
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size, 
+            chunk_overlap=chunk_overlap
+            )
+        splitted_doc = splitter.split_documents(loaded_doc)
+
+        return splitted_doc
+
+    def doc_storing(self, splitted_doc):
+        self.vec_db_storage.add_documents(
+            documents=splitted_doc,
             embedding=self.embedding,
             persist_directory = self.storage_path
         )
+        self.vec_db_storage.persist()
 
     def doc_search(self, question, k=3):
         docs = self.vec_db_storage.similarity_search(question, k=k)
@@ -27,21 +48,7 @@ class VectorDBStorage:
 
     def erase_all(self):
         print('Warning: Deleting the entire database')
-        if self.vec_db_storage is None:
-            print("No database to delete!")
-            return
-        
-        ids = []
-        for id_ in self.vec_db_storage.get():
-            ids.append(id_)
+        self.vec_db_storage.delete_collection()
+        self.vec_db_storage.persist()
 
-        if len(ids) == 0:
-            print("Database is empty already")
-            return
-        else:
-            self.vec_db_storage.delete(ids)
-            print('Deletion completed!')
-            return 
-
-#if __name__ == '__main__':
     

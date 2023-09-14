@@ -16,26 +16,19 @@ from langchain.llms import HuggingFacePipeline, OpenLM
 from langchain.cache import InMemoryCache
 langchain.llm_cache = InMemoryCache()
 
-
+# Initialization the mandatory objects
+# The main app
 app = FastAPI()
-
+# Embedding function
 embedding = HuggingFaceEmbeddings()
-vec_storage = VectorDBStorage(embedding, PATH_VECTOR_DB)
-
-#for f in ['CS229_Lecture_Notes.pdf', '10.1.1.693.855.pdf']:
-#    docs = docs_from_src(PATH_DOCS+'{}'.format(f), src_type='pdf')
-#    splitted_docs = doc_splitting(docs)
-#    vec_storage.doc_storing(splitted_docs)
-
+# Vector DB storage
+vec_storage = VectorDBStorage(embedding, PATH_VECTOR_DB, "courses")
+# LLM model for chat generation
 llm_hf = HuggingFacePipeline.from_model_id(
     model_id="gpt2",
     task="text-generation",
-    pipeline_kwargs={"max_new_tokens": 30},
+    pipeline_kwargs={"max_new_tokens": 30, "temperature": 0.2},
 )
-
-#question = 'What is optimization?'
-
-
 
 @app.get("/clear_db")
 async def clear_db():
@@ -50,19 +43,16 @@ async def upload_pdf_to_db(File: UploadFile):
     with open(tmp_loc, 'wb+') as file_obj:
         file_obj.write(File.file.read())
 
-    print("load the doc from source")
-    docs = docs_from_src(tmp_loc, src_type='pdf')
-    print("splitting doc using llm")
-    splitted_docs = doc_splitting(docs)
-    print("add doc to database")
-    vec_storage.doc_storing(splitted_docs)
+    doc = vec_storage.load_doc_pdf(tmp_loc)
+    splitted_doc = vec_storage.doc_splitting(doc)
+    vec_storage.doc_storing(splitted_doc)
 
     return {"success": "Uploaded file {} to vector database".format(File.filename)}
 
 
 @app.post("/query")
 async def query_from_db(query: str):
-    ids = vec_storage.get()
+    ids = vec_storage.vec_db_storage.get()
     if len(ids) == 0:
         return {"answer": "No data in database!"}
 
