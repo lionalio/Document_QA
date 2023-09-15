@@ -48,6 +48,19 @@ async def upload_pdf_to_db(File: UploadFile):
     return {"success": "Uploaded file {} to vector database".format(File.filename)}
 
 
+@app.post("/upload_docx/")
+async def upload_docx_to_db(File: UploadFile):
+    tmp_loc = os.path.join('tmp', File.filename)
+    with open(tmp_loc, 'wb+') as file_obj:
+        file_obj.write(File.file.read())
+
+    doc = vec_storage.load_doc_docx(tmp_loc)
+    splitted_doc = vec_storage.doc_splitting(doc)
+    vec_storage.doc_storing(splitted_doc)
+
+    return {"success": "Uploaded file {} to vector database".format(File.filename)}
+
+
 @app.post("/query")
 async def query_from_db(query: str):
     ids = vec_storage.vec_db_storage.get()
@@ -62,11 +75,17 @@ async def query_from_db(query: str):
 
     return {"answer": res}
 
+
 @app.get("/listing")
 async def get_document_list():
     obj = vec_storage.vec_db_storage.get()
 
     return obj
+
+
+@app.post("/search")
+async def doc_search(query: str):
+    return vec_storage.doc_search(query)
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-from langchain.document_loaders import DirectoryLoader, PyPDFLoader
+from langchain.document_loaders import DirectoryLoader, PyPDFLoader, Docx2txtLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import Chroma # Pinecone
@@ -14,9 +14,16 @@ class VectorDBStorage:
             persist_directory=storage_path
         )
 
-    def load_doc_pdf(self, _path):
-        loader = PyPDFLoader(_path)
+    def load_doc_pdf(self, doc_path):
+        loader = PyPDFLoader(doc_path)
         doc = loader.load()
+
+        return doc
+    
+    def load_doc_docx(self, doc_path):
+        loader = Docx2txtLoader(doc_path)
+        doc = loader.load()
+
         return doc
 
     def doc_splitting(self, loaded_doc, chunk_size=1000, chunk_overlap=100):
