@@ -43,14 +43,14 @@ class VectorDBStorage:
         self.vec_db_storage.persist()
 
     def doc_search(self, question, k=3):
-        docs = self.vec_db_storage.similarity_search(question, k=k)
+        docs = self.vec_db_storage.similarity_search(question, k=k, include_metadata=True)
         self.vec_db_storage.persist()
 
-        ret = {}
-        for i, doc in enumerate(docs):
-            ret[i] = doc.page_content
+        #ret = {}
+        #for i, doc in enumerate(docs):
+        #    ret[i] = doc.page_content
 
-        return ret
+        return docs
 
     def erase_all(self):
         print("Warning: Deleting the entire database")

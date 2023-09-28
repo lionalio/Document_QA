@@ -88,6 +88,13 @@ async def doc_search(query: str):
     return vec_storage.doc_search(query)
 
 
+@app.post("/info_extract")
+async def info_extract(template: str, query: str):
+    output = doc_qa_with_promt(llm_hf, vec_storage, template, query)
+
+    return {'summary': output}
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
 
