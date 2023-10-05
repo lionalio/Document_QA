@@ -24,7 +24,7 @@ embedding = HuggingFaceEmbeddings()
 vec_storage = VectorDBStorage(embedding, PATH_VECTOR_DB, "courses")
 # LLM model for chat generation
 llm_hf = HuggingFacePipeline.from_model_id(
-    model_id="gpt2",
+    model_id="gpt2",  # If enough resource, one might use bigger models...
     task="text-generation",
     pipeline_kwargs={"max_new_tokens": 30, "temperature": 0.2},
 )
@@ -70,7 +70,7 @@ async def query_from_db(query: str):
         return {"answer": "No data in database!"}
 
     res = doc_qa(
-        llm=llm_hf, retriever=vec_storage.vec_db_storage.as_retriever(), question=query
+        llm=llm_hf, retriever=vec_storage.vec_db_storage.as_retriever(return_source_documents=True), question=query
     )
 
     return {"answer": res}
